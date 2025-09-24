@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Automação WhatsApp - Lanchonete Sabor & Cia</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Poppins', sans-serif; }
+        .whatsapp-green { background: linear-gradient(135deg, #25D366, #128C7E); }
+        .item-card:hover { transform: translateY(-2px); transition: all 0.3s ease; }
+        .cart-badge { animation: bounce 0.5s ease-in-out; }
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+            40% { transform: translateY(-10px); }
+            60% { transform: translateY(-5px); }
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- Header -->
+    <div class="whatsapp-green text-white p-6 text-center">
+        <h1 class="text-2xl font-bold mb-2">🍔 Lanchonete Sabor & Cia</h1>
+        <p class="text-green-100">Faça seu pedido pelo WhatsApp</p>
+    </div>
+
+    <!-- Carrinho Flutuante -->
+    <div id="cartFloat" class="fixed top-4 right-4 z-50 bg-green-500 text-white rounded-full p-3 shadow-lg cursor-pointer hover:bg-green-600 transition-all" onclick="toggleCart()">
+        🛒 <span id="cartCount" class="cart-badge bg-red-500 text-xs rounded-full px-2 py-1 ml-1">0</span>
+    </div>
+
+    <div class="max-w-4xl mx-auto p-4">
+        <!-- Cardápio -->
+        <div class="bg-white rounded-lg shadow-lg p-6 mb-6">
+            <h2 class="text-2xl font-bold text-gray-800 mb-6 text-center">📋 Nosso Cardápio</h2>
+            <div class="grid md:grid-cols-2 gap-4" id="menu">
+                <!-- Itens serão inseridos aqui pelo JavaScript -->
+            </div>
+        </div>
+
+        <!-- Carrinho -->
+        <div id="cartSection" class="bg-white rounded-lg shadow-lg p-6 mb-6 hidden">
+            <h3 class="text-xl font-bold text-gray-800 mb-4">🛒 Seu Carrinho</h3>
+            <div id="cartItems"></div>
+            <div class="border-t pt-4 mt-4">
+                <div class="flex justify-between items-center text-lg font-bold">
+                    <span>Total:</span>
+                    <span id="totalPrice" class="text-green-600">R$ 0,00</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Finalização -->
+        <div id="checkoutSection" class="bg-white rounded-lg shadow-lg p-6 hidden">
+            <h3 class="text-xl font-bold text-gray-800 mb-4">📝 Finalizar Pedido</h3>
+            
+            <form id="orderForm" onsubmit="sendWhatsApp(event)">
+                <div class="mb-4">
+                    <label class="block text-gray-700 font-medium mb-2">Nome Completo:</label>
+                    <input type="text" id="customerName" required class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                </div>
+
+                <div class="mb-4">
+                    <label class="block text-gray-700 font-medium mb-2">Telefone:</label>
+                    <input type="tel" id="customerPhone" required class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent" placeholder="(11) 99999-9999">
+                </div>
+
+                <div class="mb-4">
+                    <label class="block text-gray-700 font-medium mb-2">Endereço de Entrega:</label>
+                    <textarea id="customerAddress" required class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent" rows="3" placeholder="Rua, número, bairro, cidade"></textarea>
+                </div>
+
+                <div class="mb-4">
+                    <label class="block text-gray-700 font-medium mb-2">💳 Forma de Pagamento:</label>
+                    <select id="paymentMethod" required class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                        <option value="">Selecione a forma de pagamento</option>
+                        <option value="Dinheiro">💵 Dinheiro</option>
+                        <option value="Cartão de Débito">💳 Cartão de Débito</option>
+                        <option value="Cartão de Crédito">💳 Cartão de Crédito</option>
+                        <option value="PIX">📱 PIX</option>
+                    </select>
+                </div>
+
+                <div id="changeSection" class="mb-4 hidden">
+                    <label class="block text-gray-700 font-medium mb-2">Troco para quanto?</label>
+                    <input type="number" id="changeAmount" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent" placeholder="Ex: 50.00" step="0.01">
+                </div>
+
+                <div class="mb-6">
+                    <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                        <h4 class="font-medium text-yellow-800 mb-2">⏰ Tempo de Entrega Estimado:</h4>
+                        <p class="text-yellow-700">45 a 60 minutos</p>
+                        <p class="text-sm text-yellow-600 mt-1">*O tempo pode variar conforme a demanda e localização</p>
+                    </div>
+                </div>
+
+                <button type="submit" class="w-full whatsapp-green text-white py-4 rounded-lg font-bold text-lg hover:opacity-90 transition-all">
+                    📱 Enviar Pedido pelo WhatsApp
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Cardápio da lanchonete
+        const menuItems = [
+            { id: 1, name: "X-Burger Clássico", price: 18.90, emoji: "🍔", description: "Hambúrguer, queijo, alface, tomate" },
+            { id: 2, name: "X-Bacon Especial", price: 22.90, emoji: "🥓", description: "Hambúrguer, bacon, queijo, molho especial" },
+            { id: 3, name: "X-Frango Grelhado", price: 19.90, emoji: "🐔", description: "Frango grelhado, queijo, alface, maionese" },
+            { id: 4, name: "X-Vegetariano", price: 17.90, emoji: "🥬", description: "Hambúrguer de soja, queijo, vegetais" },
+            { id: 5, name: "Batata Frita Grande", price: 12.90, emoji: "🍟", description: "Porção generosa de batatas crocantes" },
+            { id: 6, name: "Nuggets (10 unid)", price: 15.90, emoji: "🍗", description: "Nuggets de frango empanados" },
+            { id: 7, name: "Refrigerante Lata", price: 4.50, emoji: "🥤", description: "Coca-Cola, Guaraná, Fanta (350ml)" },
+            { id: 8, name: "Suco Natural", price: 7.90, emoji: "🧃", description: "Laranja, limão, maracujá (500ml)" },
+            { id: 9, name: "Milkshake", price: 12.90, emoji: "🥤", description: "Chocolate, morango ou baunilha" },
+            { id: 10, name: "Sobremesa do Dia", price: 8.90, emoji: "🍰", description: "Pudim, brigadeirão ou mousse" }
+        ];
+
+        let cart = [];
+
+        // Renderizar cardápio
+        function renderMenu() {
+            const menuContainer = document.getElementById('menu');
+            menuContainer.innerHTML = menuItems.map(item => `
+                <div class="item-card bg-gray-50 rounded-lg p-4 border hover:shadow-md transition-all">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-2xl">${item.emoji}</span>
+                        <span class="text-lg font-bold text-green-600">R$ ${item.price.toFixed(2)}</span>
+                    </div>
+                    <h4 class="font-semibold text-gray-800 mb-1">${item.name}</h4>
+                    <p class="text-sm text-gray-600 mb-3">${item.description}</p>
+                    <button onclick="addToCart(${item.id})" class="w-full bg-green-500 text-white py-2 rounded-lg hover:bg-green-600 transition-all font-medium">
+                        Adicionar ao Carrinho
+                    </button>
+                </div>
+            `).join('');
+        }
+
+        // Adicionar ao carrinho
+        function addToCart(itemId) {
+            const item = menuItems.find(i => i.id === itemId);
+            const existingItem = cart.find(i => i.id === itemId);
+            
+            if (existingItem) {
+                existingItem.quantity += 1;
+            } else {
+                cart.push({ ...item, quantity: 1 });
+            }
+            
+            updateCartDisplay();
+        }
+
+        // Atualizar exibição do carrinho
+        function updateCartDisplay() {
+            const cartCount = document.getElementById('cartCount');
+            const cartItems = document.getElementById('cartItems');
+            const totalPrice = document.getElementById('totalPrice');
+            
+            const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
+            const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+            
+            cartCount.textContent = totalItems;
+            
+            if (cart.length === 0) {
+                cartItems.innerHTML = '<p class="text-gray-500 text-center py-4">Carrinho vazio</p>';
+            } else {
+                cartItems.innerHTML = cart.map(item => `
+                    <div class="flex items-center justify-between py-2 border-b">
+                        <div class="flex items-center">
+                            <span class="text-lg mr-2">${item.emoji}</span>
+                            <div>
+                                <div class="font-medium">${item.name}</div>
+                                <div class="text-sm text-gray-600">R$ ${item.price.toFixed(2)} cada</div>
+                            </div>
+                        </div>
+                        <div class="flex items-center">
+                            <button onclick="updateQuantity(${item.id}, -1)" class="bg-red-500 text-white w-8 h-8 rounded-full hover:bg-red-600">-</button>
+                            <span class="mx-3 font-medium">${item.quantity}</span>
+                            <button onclick="updateQuantity(${item.id}, 1)" class="bg-green-500 text-white w-8 h-8 rounded-full hover:bg-green-600">+</button>
+                        </div>
+                    </div>
+                `).join('');
+            }
+            
+            totalPrice.textContent = `R$ ${total.toFixed(2)}`;
+            
+            // Mostrar seção de checkout se houver itens
+            const checkoutSection = document.getElementById('checkoutSection');
+            if (cart.length > 0) {
+                checkoutSection.classList.remove('hidden');
+            } else {
+                checkoutSection.classList.add('hidden');
+            }
+        }
+
+        // Atualizar quantidade
+        function updateQuantity(itemId, change) {
+            const item = cart.find(i => i.id === itemId);
+            if (item) {
+                item.quantity += change;
+                if (item.quantity <= 0) {
+                    cart = cart.filter(i => i.id !== itemId);
+                }
+                updateCartDisplay();
+            }
+        }
+
+        // Toggle carrinho
+        function toggleCart() {
+            const cartSection = document.getElementById('cartSection');
+            cartSection.classList.toggle('hidden');
+        }
+
+        // Mostrar campo de troco
+        document.getElementById('paymentMethod').addEventListener('change', function() {
+            const changeSection = document.getElementById('changeSection');
+            if (this.value === 'Dinheiro') {
+                changeSection.classList.remove('hidden');
+            } else {
+                changeSection.classList.add('hidden');
+            }
+        });
+
+        // Enviar para WhatsApp
+        function sendWhatsApp(event) {
+            event.preventDefault();
+            
+            const name = document.getElementById('customerName').value;
+            const phone = document.getElementById('customerPhone').value;
+            const address = document.getElementById('customerAddress').value;
+            const paymentMethod = document.getElementById('paymentMethod').value;
+            const changeAmount = document.getElementById('changeAmount').value;
+            
+            const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+            
+            let message = `🍔 *NOVO PEDIDO - Lanchonete Sabor & Cia*\n\n`;
+            message += `👤 *Cliente:* ${name}\n`;
+            message += `📞 *Telefone:* ${phone}\n`;
+            message += `📍 *Endereço:* ${address}\n\n`;
+            
+            message += `🛒 *ITENS DO PEDIDO:*\n`;
+            cart.forEach(item => {
+                message += `${item.emoji} ${item.quantity}x ${item.name} - R$ ${(item.price * item.quantity).toFixed(2)}\n`;
+            });
+            
+            message += `\n💰 *TOTAL: R$ ${total.toFixed(2)}*\n\n`;
+            message += `💳 *Pagamento:* ${paymentMethod}\n`;
+            
+            if (paymentMethod === 'Dinheiro' && changeAmount) {
+                message += `💵 *Troco para:* R$ ${parseFloat(changeAmount).toFixed(2)}\n`;
+            }
+            
+            message += `\n⏰ *Tempo estimado:* 45-60 minutos\n`;
+            message += `\n✅ Pedido confirmado! Obrigado pela preferência! 🙏`;
+            
+            // Número do WhatsApp da lanchonete (substitua pelo número real)
+            const whatsappNumber = "5511999999999"; // Formato: código do país + DDD + número
+            const encodedMessage = encodeURIComponent(message);
+            const whatsappURL = `https://wa.me/${whatsappNumber}?text=${encodedMessage}`;
+            
+            // Abrir WhatsApp em nova aba
+            window.open(whatsappURL, '_blank', 'noopener,noreferrer');
+            
+            // Limpar carrinho após envio
+            cart = [];
+            updateCartDisplay();
+            document.getElementById('orderForm').reset();
+            
+            // Mostrar confirmação
+            alert('Pedido enviado! Você será redirecionado para o WhatsApp.');
+        }
+
+        // Inicializar
+        renderMenu();
+        updateCartDisplay();
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'98452ab434fb0152',t:'MTc1ODc0NzE1OS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
