@@ -274,25 +274,67 @@
             // SEU NÚMERO DO WHATSAPP +55 51 9820-0711
             const whatsappNumber = "555198200711";
             
-            // Codificar mensagem e criar URL
+            // Codificar mensagem
             const encodedMessage = encodeURIComponent(message);
-            const whatsappURL = `https://wa.me/${whatsappNumber}?text=${encodedMessage}`;
             
-            console.log('URL do WhatsApp:', whatsappURL); // Para debug
+            // Detectar dispositivo e criar URLs apropriadas
+            const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
             
-            // Abrir WhatsApp
+            let whatsappURL;
+            if (isMobile) {
+                // Para celular: usar whatsapp://
+                whatsappURL = `whatsapp://send?phone=${whatsappNumber}&text=${encodedMessage}`;
+            } else {
+                // Para desktop: usar wa.me
+                whatsappURL = `https://wa.me/${whatsappNumber}?text=${encodedMessage}`;
+            }
+            
+            console.log('Dispositivo móvel:', isMobile);
+            console.log('URL do WhatsApp:', whatsappURL);
+            
+            // Tentar abrir WhatsApp
             try {
-                window.open(whatsappURL, '_blank', 'noopener,noreferrer');
+                if (isMobile) {
+                    // No celular, tentar primeiro o app nativo
+                    window.location.href = whatsappURL;
+                    
+                    // Fallback para web após 2 segundos se não abrir
+                    setTimeout(() => {
+                        const webURL = `https://wa.me/${whatsappNumber}?text=${encodedMessage}`;
+                        window.open(webURL, '_blank', 'noopener,noreferrer');
+                    }, 2000);
+                } else {
+                    // No desktop, abrir diretamente o WhatsApp Web
+                    window.open(whatsappURL, '_blank', 'noopener,noreferrer');
+                }
                 
                 // Limpar carrinho após envio
-                cart = [];
-                updateCartDisplay();
-                document.getElementById('orderForm').reset();
+                setTimeout(() => {
+                    cart = [];
+                    updateCartDisplay();
+                    document.getElementById('orderForm').reset();
+                }, 1000);
                 
                 alert('Pedido enviado! Você será redirecionado para o WhatsApp.');
+                
             } catch (error) {
                 console.error('Erro ao abrir WhatsApp:', error);
-                alert('Erro ao abrir WhatsApp. Tente novamente.');
+                
+                // Fallback final: mostrar link para copiar
+                const fallbackURL = `https://wa.me/${whatsappNumber}?text=${encodedMessage}`;
+                const userConfirm = confirm(`Erro ao abrir WhatsApp automaticamente.\n\nDeseja copiar o link para abrir manualmente?\n\nClique OK para copiar o link.`);
+                
+                if (userConfirm) {
+                    // Criar elemento temporário para copiar
+                    const tempInput = document.createElement('input');
+                    tempInput.value = fallbackURL;
+                    document.body.appendChild(tempInput);
+                    tempInput.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(tempInput);
+                    
+                    alert('Link copiado! Cole no navegador para abrir o WhatsApp.');
+                }
             }
         }
 
@@ -300,5 +342,5 @@
         renderMenu();
         updateCartDisplay();
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9845f5d734974b41',t:'MTc1ODc1NTQ4MC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9846012484a5c7a4',t:'MTc1ODc1NTk0My4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
