@@ -58,7 +58,7 @@
         <div id="checkoutSection" class="bg-white rounded-lg shadow-lg p-6 hidden">
             <h3 class="text-xl font-bold text-gray-800 mb-4">📝 Finalizar Pedido</h3>
             
-            <form id="orderForm" onsubmit="sendWhatsApp(event)">
+            <form id="orderForm">
                 <div class="mb-4">
                     <label class="block text-gray-700 font-medium mb-2">Nome Completo:</label>
                     <input type="text" id="customerName" required class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent">
@@ -66,7 +66,7 @@
 
                 <div class="mb-4">
                     <label class="block text-gray-700 font-medium mb-2">Telefone:</label>
-                    <input type="tel" id="customerPhone" required class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent" placeholder="(11) 99999-9999">
+                    <input type="tel" id="customerPhone" required class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent" placeholder="(51) 99999-9999">
                 </div>
 
                 <div class="mb-4">
@@ -98,7 +98,7 @@
                     </div>
                 </div>
 
-                <button type="submit" class="w-full whatsapp-green text-white py-4 rounded-lg font-bold text-lg hover:opacity-90 transition-all">
+                <button type="button" onclick="sendWhatsApp()" class="w-full whatsapp-green text-white py-4 rounded-lg font-bold text-lg hover:opacity-90 transition-all">
                     📱 Enviar Pedido pelo WhatsApp
                 </button>
             </form>
@@ -225,18 +225,31 @@
             }
         });
 
-        // Enviar para WhatsApp
-        function sendWhatsApp(event) {
-            event.preventDefault();
-            
-            const name = document.getElementById('customerName').value;
-            const phone = document.getElementById('customerPhone').value;
-            const address = document.getElementById('customerAddress').value;
+        // Enviar para WhatsApp - FUNÇÃO PRINCIPAL
+        function sendWhatsApp() {
+            // Validar se há itens no carrinho
+            if (cart.length === 0) {
+                alert('Adicione itens ao carrinho primeiro!');
+                return;
+            }
+
+            // Pegar dados do formulário
+            const name = document.getElementById('customerName').value.trim();
+            const phone = document.getElementById('customerPhone').value.trim();
+            const address = document.getElementById('customerAddress').value.trim();
             const paymentMethod = document.getElementById('paymentMethod').value;
             const changeAmount = document.getElementById('changeAmount').value;
             
+            // Validar campos obrigatórios
+            if (!name || !phone || !address || !paymentMethod) {
+                alert('Por favor, preencha todos os campos obrigatórios!');
+                return;
+            }
+            
+            // Calcular total
             const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
             
+            // Montar mensagem
             let message = `🍔 *NOVO PEDIDO - Lanchonete Sabor & Cia*\n\n`;
             message += `👤 *Cliente:* ${name}\n`;
             message += `📞 *Telefone:* ${phone}\n`;
@@ -244,7 +257,8 @@
             
             message += `🛒 *ITENS DO PEDIDO:*\n`;
             cart.forEach(item => {
-                message += `${item.emoji} ${item.quantity}x ${item.name} - R$ ${(item.price * item.quantity).toFixed(2)}\n`;
+                const subtotal = (item.price * item.quantity).toFixed(2);
+                message += `${item.emoji} ${item.quantity}x ${item.name} - R$ ${subtotal}\n`;
             });
             
             message += `\n💰 *TOTAL: R$ ${total.toFixed(2)}*\n\n`;
@@ -257,30 +271,36 @@
             message += `\n⏰ *Tempo estimado:* 45-60 minutos\n`;
             message += `\n✅ Pedido confirmado! Obrigado pela preferência! 🙏`;
             
-            // 🔥🔥🔥 COLOQUE SEU NÚMERO AQUI 🔥🔥🔥
-            // FORMATO: 55 + DDD + NÚMERO (SEM ESPAÇOS)
-            // EXEMPLO: (11) 98765-4321 = 5511987654321
-            // EXEMPLO: (21) 99888-7766 = 5521998887766
-            const whatsappNumber = "5551998200711"; // ← SEU NÚMERO CONFIGURADO! 
+            // SEU NÚMERO DO WHATSAPP (51) 99820-0711
+            const whatsappNumber = "5551998200711";
             
+            // Codificar mensagem e criar URL
             const encodedMessage = encodeURIComponent(message);
             const whatsappURL = `https://wa.me/${whatsappNumber}?text=${encodedMessage}`;
             
-            // Abrir WhatsApp em nova aba
-            window.open(whatsappURL, '_blank', 'noopener,noreferrer');
+            console.log('URL do WhatsApp:', whatsappURL); // Para debug
             
-            // Limpar carrinho após envio
-            cart = [];
-            updateCartDisplay();
-            document.getElementById('orderForm').reset();
-            
-            // Mostrar confirmação
-            alert('Pedido enviado! Você será redirecionado para o WhatsApp.');
+            // Abrir WhatsApp
+            try {
+                window.open(whatsappURL, '_blank', 'noopener,noreferrer');
+                
+                // Limpar carrinho após envio
+                cart = [];
+                updateCartDisplay();
+                document.getElementById('orderForm').reset();
+                
+                alert('Pedido enviado! Você será redirecionado para o WhatsApp.');
+            } catch (error) {
+                console.error('Erro ao abrir WhatsApp:', error);
+                alert('Erro ao abrir WhatsApp. Tente novamente.');
+            }
         }
 
-        // Inicializar
-        renderMenu();
-        updateCartDisplay();
+        // Inicializar página
+        document.addEventListener('DOMContentLoaded', function() {
+            renderMenu();
+            updateCartDisplay();
+        });
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9845decd071d1927',t:'MTc1ODc1NDUzNi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9845e6662379fb82',t:'MTc1ODc1NDg0OC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
