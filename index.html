@@ -7,7 +7,10 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
-        body { font-family: 'Poppins', sans-serif; }
+        body { 
+            font-family: 'Poppins', sans-serif; 
+            box-sizing: border-box;
+        }
         .whatsapp-green { background: linear-gradient(135deg, #25D366, #128C7E); }
         .item-card:hover { transform: translateY(-2px); transition: all 0.3s ease; }
         .cart-badge { animation: bounce 0.5s ease-in-out; }
@@ -254,8 +257,11 @@
             message += `\n⏰ *Tempo estimado:* 45-60 minutos\n`;
             message += `\n✅ Pedido confirmado! Obrigado pela preferência! 🙏`;
             
-            // Número do WhatsApp da lanchonete (substitua pelo número real)
-            const whatsappNumber = "5551998200711"; // Formato: código do país + DDD + número
+            // ⚠️ ALTERE AQUI O SEU NÚMERO DO WHATSAPP ⚠️
+            // Formato: 55 + DDD + número (sem espaços, traços ou parênteses)
+            // Exemplo: se seu WhatsApp é (11) 98765-4321, coloque: 5511987654321
+            const whatsappNumber = "5551998200711"; 
+            
             const encodedMessage = encodeURIComponent(message);
             const whatsappURL = `https://wa.me/${whatsappNumber}?text=${encodedMessage}`;
             
@@ -275,5 +281,5 @@
         renderMenu();
         updateCartDisplay();
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'98452ab434fb0152',t:'MTc1ODc0NzE1OS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9845c6e5f6350137',t:'MTc1ODc1MzU1Ny4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
