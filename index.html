@@ -140,7 +140,7 @@
                 <ol class="text-sm text-green-700 space-y-1">
                     <li><strong>1.</strong> Clique em "Enviar Pedido para WhatsApp" para abrir o WhatsApp automaticamente</li>
                     <li><strong>2.</strong> Se preferir, clique em "Copiar Mensagem" e cole no WhatsApp</li>
-                    <li><strong>3.</strong> Contato: <strong>+5511982000711</strong></li>
+                    <li><strong>3.</strong> Contato: <strong id="whatsappNumberDisplay">+5511982000711</strong></li>
                     <li><strong>4.</strong> Envie a mensagem!</li>
                 </ol>
             </div>
@@ -157,7 +157,7 @@
     </div>
 
     <script>
-        // Cardápio da lanchonete
+        // Cardápio com 10 itens
         const menuItems = [
             { id: 1, name: "X-Burger Clássico", price: 18.90, emoji: "🍔", description: "Hambúrguer, queijo, alface, tomate" },
             { id: 2, name: "X-Bacon Especial", price: 22.90, emoji: "🥓", description: "Hambúrguer, bacon, queijo, molho especial" },
@@ -172,27 +172,23 @@
         ];
 
         let cart = [];
-        const WHATSAPP_NUMBER = "+5511982000711"; // Substitua pelo número real registrado no WhatsApp
+        const WHATSAPP_NUMBER = "+5551982000711"; // Substitua por seu número real no formato +55119XXXXXXXX
+
+        // Atualizar número de WhatsApp na interface
+        document.getElementById('whatsappNumberDisplay').textContent = WHATSAPP_NUMBER;
 
         // Função para formatar e validar número de telefone
         function formatPhoneNumber(phone) {
-            // Remove caracteres não numéricos
             let cleaned = phone.replace(/\D/g, '');
-            
-            // Verifica se começa com +55 ou apenas com o DDD
             if (!cleaned.startsWith('55') && cleaned.length === 11) {
                 cleaned = '55' + cleaned;
             } else if (cleaned.length === 9) {
-                // Assume DDD 11 (São Paulo) como padrão, ajustar conforme necessário
-                cleaned = '5511' + cleaned;
+                cleaned = '5551' + cleaned; // Prioriza DDD 51 para Porto Alegre
             }
-
-            // Valida o formato (deve ter 13 dígitos para +55 DDD 9 dígitos)
-            if (!/^\+55\d{2}9\d{8}$/.test(cleaned)) {
+            if (!/^\+?55\d{2}9\d{8}$/.test('+' + cleaned)) {
                 return null;
             }
-
-            return cleaned;
+            return '+' + cleaned;
         }
 
         // Renderizar cardápio
@@ -217,13 +213,11 @@
         function addToCart(itemId) {
             const item = menuItems.find(i => i.id === itemId);
             const existingItem = cart.find(i => i.id === itemId);
-            
             if (existingItem) {
                 existingItem.quantity += 1;
             } else {
                 cart.push({ ...item, quantity: 1 });
             }
-            
             updateCartDisplay();
         }
 
@@ -232,12 +226,9 @@
             const cartCount = document.getElementById('cartCount');
             const cartItems = document.getElementById('cartItems');
             const totalPrice = document.getElementById('totalPrice');
-            
             const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
             const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-            
             cartCount.textContent = totalItems;
-            
             if (cart.length === 0) {
                 cartItems.innerHTML = '<p class="text-gray-500 text-center py-4">Carrinho vazio</p>';
             } else {
@@ -258,10 +249,7 @@
                     </div>
                 `).join('');
             }
-            
             totalPrice.textContent = `R$ ${total.toFixed(2)}`;
-            
-            // Mostrar seção de checkout se houver itens
             const checkoutSection = document.getElementById('checkoutSection');
             if (cart.length > 0) {
                 checkoutSection.classList.remove('hidden');
@@ -298,81 +286,60 @@
             }
         });
 
-        // Função para gerar mensagem do pedido
+        // Gerar mensagem do pedido
         function generateOrderMessage() {
             const name = document.getElementById('customerName').value.trim();
             const phone = formatPhoneNumber(document.getElementById('customerPhone').value.trim());
             const address = document.getElementById('customerAddress').value.trim();
             const paymentMethod = document.getElementById('paymentMethod').value;
             const changeAmount = document.getElementById('changeAmount').value;
-            
             if (!phone) {
-                throw new Error('Número de telefone inválido. Use o formato +5511999999999 ou (11) 99999-9999');
+                throw new Error('Número de telefone inválido. Use o formato +5511999999999 ou (51) 99999-9999');
             }
-
             const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-            
             let message = `🍔 *NOVO PEDIDO - Lanchonete Sabor & Cia*\n\n`;
             message += `👤 *Cliente:* ${name}\n`;
             message += `📞 *Telefone:* ${phone}\n`;
             message += `📍 *Endereço:* ${address}\n\n`;
-            
             message += `🛒 *ITENS DO PEDIDO:*\n`;
             cart.forEach(item => {
                 const subtotal = (item.price * item.quantity).toFixed(2);
                 message += `${item.emoji} ${item.quantity}x ${item.name} - R$ ${subtotal}\n`;
             });
-            
             message += `\n💰 *TOTAL: R$ ${total.toFixed(2)}*\n\n`;
             message += `💳 *Pagamento:* ${paymentMethod}\n`;
-            
             if (paymentMethod === 'Dinheiro' && changeAmount) {
                 message += `💵 *Troco para:* R$ ${parseFloat(changeAmount).toFixed(2)}\n`;
             }
-            
             message += `\n⏰ *Tempo estimado:* 45-60 minutos\n`;
             message += `\n✅ Pedido confirmado! Obrigado pela preferência! 🙏`;
-            
             return message;
         }
 
-        // Gerar mensagem para WhatsApp - FUNÇÃO PRINCIPAL
+        // Gerar mensagem para WhatsApp
         function generateMessage() {
-            // Validar se há itens no carrinho
             if (cart.length === 0) {
                 alert('Adicione itens ao carrinho primeiro!');
                 return;
             }
-
-            // Pegar dados do formulário
             const name = document.getElementById('customerName').value.trim();
             const phone = document.getElementById('customerPhone').value.trim();
             const address = document.getElementById('customerAddress').value.trim();
             const paymentMethod = document.getElementById('paymentMethod').value;
-            
-            // Validar campos obrigatórios
             if (!name || !phone || !address || !paymentMethod) {
                 alert('Por favor, preencha todos os campos obrigatórios!');
                 return;
             }
-
             try {
                 const message = generateOrderMessage();
                 const encodedMessage = encodeURIComponent(message);
                 const whatsappUrl = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodedMessage}`;
-                
-                // Mostrar a mensagem na tela
                 document.getElementById('generatedMessage').value = message;
                 document.getElementById('messageSection').classList.remove('hidden');
                 document.getElementById('checkoutSection').classList.add('hidden');
-                
-                // Scroll para a mensagem
                 document.getElementById('messageSection').scrollIntoView({ behavior: 'smooth' });
-                
-                // Abrir WhatsApp automaticamente
                 window.open(whatsappUrl, '_blank');
-                
-                alert('✅ Mensagem gerada com sucesso!\n\n📱 WhatsApp foi aberto com a mensagem pronta. Caso não abra, copie a mensagem e cole no WhatsApp no número ' + WHATSAPP_NUMBER);
+                alert('✅ Mensagem gerada com sucesso!\n\n📱 WhatsApp aberto com a mensagem pronta.');
             } catch (error) {
                 alert('❌ Erro: ' + error.message);
             }
@@ -381,37 +348,17 @@
         // Copiar mensagem
         function copyMessage() {
             const messageText = document.getElementById('generatedMessage').value;
-            
-            if (navigator.clipboard) {
-                navigator.clipboard.writeText(messageText).then(() => {
-                    alert('✅ Mensagem copiada!\n\n📱 Agora abra o WhatsApp e cole no contato ' + WHATSAPP_NUMBER);
-                }).catch(() => {
-                    fallbackCopy(messageText);
-                });
-            } else {
-                fallbackCopy(messageText);
-            }
-        }
-
-        // Função de fallback para copiar
-        function fallbackCopy(text) {
-            const textArea = document.createElement('textarea');
-            textArea.value = text;
-            textArea.style.position = 'fixed';
-            textArea.style.left = '-999999px';
-            textArea.style.top = '-999999px';
-            document.body.appendChild(textArea);
-            textArea.focus();
-            textArea.select();
-            
-            try {
+            navigator.clipboard.writeText(messageText).then(() => {
+                alert('✅ Mensagem copiada! Cole no WhatsApp no número ' + WHATSAPP_NUMBER);
+            }).catch(() => {
+                const textArea = document.createElement('textarea');
+                textArea.value = messageText;
+                document.body.appendChild(textArea);
+                textArea.select();
                 document.execCommand('copy');
-                alert('✅ Mensagem copiada!\n\n📱 Agora abra o WhatsApp e cole no contato ' + WHATSAPP_NUMBER);
-            } catch (err) {
-                alert('❌ Não foi possível copiar automaticamente.\n\nSelecione o texto acima e copie manualmente (Ctrl+C)');
-            }
-            
-            document.body.removeChild(textArea);
+                document.body.removeChild(textArea);
+                alert('✅ Mensagem copiada! Cole no WhatsApp no número ' + WHATSAPP_NUMBER);
+            });
         }
 
         // Novo pedido
@@ -421,8 +368,6 @@
             document.getElementById('orderForm').reset();
             document.getElementById('messageSection').classList.add('hidden');
             document.getElementById('checkoutSection').classList.add('hidden');
-            
-            // Scroll para o topo
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
@@ -430,12 +375,10 @@
         function editOrder() {
             document.getElementById('messageSection').classList.add('hidden');
             document.getElementById('checkoutSection').classList.remove('hidden');
-            
-            // Scroll para o formulário
             document.getElementById('checkoutSection').scrollIntoView({ behavior: 'smooth' });
         }
 
-        // Inicializar página
+        // Inicializar
         renderMenu();
         updateCartDisplay();
     </script>
