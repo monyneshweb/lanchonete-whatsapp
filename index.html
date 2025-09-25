@@ -140,7 +140,7 @@
                 <ol class="text-sm text-green-700 space-y-1">
                     <li><strong>1.</strong> Clique em "Enviar Pedido para WhatsApp" para abrir o WhatsApp automaticamente</li>
                     <li><strong>2.</strong> Se preferir, clique em "Copiar Mensagem" e cole no WhatsApp</li>
-                    <li><strong>3.</strong> Contato: <strong id="whatsappNumberDisplay">+555198200711</strong></li>
+                    <li><strong>3.</strong> Contato: <strong id="whatsappNumberDisplay">+55519982000711</strong></li>
                     <li><strong>4.</strong> Envie a mensagem!</li>
                 </ol>
             </div>
@@ -172,7 +172,7 @@
         ];
 
         let cart = [];
-        const WHATSAPP_NUMBER = "+555198200711"; // Substitua por seu número real no formato +55119XXXXXXXX
+        const WHATSAPP_NUMBER = "+55519982000711"; // Substitua por seu número real no formato +55119XXXXXXXX
 
         // Atualizar número de WhatsApp na interface
         document.getElementById('whatsappNumberDisplay').textContent = WHATSAPP_NUMBER;
@@ -294,7 +294,7 @@
             const paymentMethod = document.getElementById('paymentMethod').value;
             const changeAmount = document.getElementById('changeAmount').value;
             if (!phone) {
-                throw new Error('Número de telefone inválido. Use o formato +555198200711 ou (51) 99820-0711');
+                throw new Error('Número de telefone inválido. Use o formato +55519982000711 ou (51) 99820-0711');
             }
             const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
             let message = `🍔 *NOVO PEDIDO - Lanchonete Sabor & Cia*\n\n`;
