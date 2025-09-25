@@ -294,7 +294,7 @@
             const paymentMethod = document.getElementById('paymentMethod').value;
             const changeAmount = document.getElementById('changeAmount').value;
             if (!phone) {
-                throw new Error('Número de telefone inválido. Use o formato +555198200711 ou (51) 99999-9999');
+                throw new Error('Número de telefone inválido. Use o formato +555198200711 ou (51) 99820-0711');
             }
             const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
             let message = `🍔 *NOVO PEDIDO - Lanchonete Sabor & Cia*\n\n`;
